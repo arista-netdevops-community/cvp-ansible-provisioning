@@ -1,15 +1,16 @@
 output "cluster_node" {
-  value = var.vm
+  description = "VM configuration."
+  value       = var.vm
 }
 output "cluster_ssh_user" {
-  value = var.vm[*].bootstrap.username
+  description = "Users that can be used to ssh into the VMs."
+  value       = var.vm[*].bootstrap.username
 }
-# output "cvp_deviceadd_token" {
-#   value = data.external.cvp_token.result
-# }
 output "cvp_ingest_key" {
-  value = "key,${var.cvp_ingest_key}"
+  description = "Key that will be used to authenticate devices to CVP."
+  value       = "key,${var.cvp_ingest_key}"
 }
 output "cluster_node_data" {
-  value = data.external.cluster_node_data[*]
+  description = "Data obtained from running instances."
+  value       = data.external.cluster_node_data[*]
 }

@@ -3,7 +3,8 @@ terraform {
 }
 
 variable "cloud_provider" {
-  type = string
+  description = "Cloud provider where the instances are running. Used on provider-specific steps during provisioning."
+  type        = string
   validation {
     condition     = var.cloud_provider == "gcp" || var.cloud_provider == "aws"
     error_message = "Currently supported cloud providers are either gcp or aws."
@@ -11,31 +12,31 @@ variable "cloud_provider" {
 }
 
 variable "cvp_version" {
-  type = string
+  description = "CVP version to install on the cluster."
+  type        = string
 }
 variable "cvp_download_token" {
-  type = string
+  description = "Arista Portal token used to download CVP. May be obtained on https://www.arista.com/en/users/profile under Portal Access."
+  type        = string
 }
 variable "cvp_install_size" {
-  type    = string
-  default = null
+  description = "CVP installation size."
+  type        = string
+  default     = null
 }
 variable "cvp_enable_advanced_login_options" {
-  type    = bool
-  default = false
+  description = "Whether to enable advanced login options on CVP."
+  type        = bool
+  default     = false
 }
 variable "cvp_ingest_key" {
-  type = string
+  description = "Key that will be used to authenticate devices to CVP."
+  type        = string
 }
 variable "cvp_k8s_cluster_network" {
-  type = string
+  description = "Internal network that will be used inside the k8s cluster. Applies only to 2021.1.0+."
+  type        = string
 }
-# variable "cvp_ntp" {
-#   type    = string
-# }
-
-variable "nodes" {}
-variable "subnets" {}
 
 # Standard VM definition
 # vm = {
@@ -88,6 +89,7 @@ variable "subnets" {}
 #   }
 # }
 variable "vm" {
+  description = "VM configuration."
   type = list(object({
     disk = object({
       data = object({
