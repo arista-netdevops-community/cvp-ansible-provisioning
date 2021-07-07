@@ -181,7 +181,7 @@ data "external" "cluster_node_data" {
   count = length(var.vm)
   program = [
     "ssh",
-    "-i", "${var.vm[count.index].ssh.private_key_path}",
+    "-i", var.vm[count.index].ssh.private_key_path,
     "-tt",
     "-o", "UserKnownHostsFile=/dev/null",
     "-o", "StrictHostKeyChecking=no",
