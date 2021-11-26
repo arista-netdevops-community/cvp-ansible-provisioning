@@ -24,6 +24,7 @@
     filesystem_lock: '/root/.ansible_filesystem'
     node_name: node1
     provision_dir: "{{ data_dir }}/.cvp-provision"
+    cvp_install_parameters: "{{ 'install' if cvp_version == '2021.2.0' else '' }}"
 
   tasks:
     - name: Read CVP configuration
@@ -84,7 +85,7 @@
       shell:
         cmd: bash -c "echo -e \"p\nd\n2\nn\np\n2\n\n\np\nw\nq\n\"|fdisk /dev/sda" || true
         creates: "{{ filesystem_lock }}"
-      when: cloud_provider == "gcp"
+      when: cloud_provider == "gcp" and cvp_version != "2021.2.0"
 
     - name: Reread root partition
       shell:
@@ -96,7 +97,7 @@
       shell:
         cmd: resize2fs /dev/sda2 && touch {{ filesystem_lock }}
         creates: "{{ filesystem_lock }}"
-      when: cloud_provider == "gcp"
+      when: cloud_provider == "gcp" and cvp_version != "2021.2.0"
 
     - name: Prepare data disk
       filesystem:
@@ -112,7 +113,7 @@
     - name: Mount data disk
       mount:
         path: "{{ data_dir }}"
-        src: LABEL=cvp-data
+        src: "{{ data_disk }}"
         fstype: ext4
         state: mounted
         opts: noatime
@@ -126,6 +127,11 @@
       file:
         path: "{{ provision_dir }}/python3"
         state: directory
+
+    - name: Remove upgrades
+      shell:
+        cmd: yum list installed|grep @updates|awk '{print $1}'|xargs yum -y downgrade --disablerepo="updates"
+      when: cvp_version == "2021.2.0" and cloud_provider == "gcp"
 
     - name: Setup python
       yum:
@@ -197,7 +203,7 @@
       block:
         - name: Install CVP
           shell:
-            cmd: rm -Rf /tmp/cvp.install* && bash {{ data_dir }}/cvp-rpm-installer-{{ cvp_version }} " " {{ cvp_size }}
+            cmd: rm -Rf /tmp/cvp.install* && bash {{ data_dir }}/cvp-rpm-installer-{{ cvp_version }} {{ cvp_install_parameters }} " " {{ cvp_size }}
             chdir: "{{ data_dir }}"
             creates: /cvpi/tools/cvpConfig.py
       rescue:
