@@ -24,7 +24,19 @@
     filesystem_lock: '/root/.ansible_filesystem'
     node_name: node1
     provision_dir: "{{ data_dir }}/.cvp-provision"
-    cvp_install_parameters: "{{ 'install' if cvp_version == '2021.2.0' else '' }}"
+    legacy_cvps:
+      - '2020.1.0'
+      - '2020.1.1'
+      - '2020.1.2'
+      - '2020.2.0'
+      - '2020.2.1'
+      - '2020.2.2'
+      - '2020.2.3'
+      - '2020.3.0'
+      - '2020.3.1'
+      - '2021.1.0'
+      - '2021.1.1'
+    cvp_install_parameters: "{{ 'install' if cvp_version not in legacy_cvps else '' }}"
 
   tasks:
     - name: Read CVP configuration
@@ -85,7 +97,7 @@
       shell:
         cmd: bash -c "echo -e \"p\nd\n2\nn\np\n2\n\n\np\nw\nq\n\"|fdisk /dev/sda" || true
         creates: "{{ filesystem_lock }}"
-      when: cloud_provider == "gcp" and cvp_version != "2021.2.0"
+      when: cloud_provider == "gcp" and cvp_version in legacy_cvps
 
     - name: Reread root partition
       shell:
@@ -97,7 +109,7 @@
       shell:
         cmd: resize2fs /dev/sda2 && touch {{ filesystem_lock }}
         creates: "{{ filesystem_lock }}"
-      when: cloud_provider == "gcp" and cvp_version != "2021.2.0"
+      when: cloud_provider == "gcp" and cvp_version in legacy_cvps
 
     - name: Prepare data disk
       filesystem:
@@ -131,7 +143,7 @@
     - name: Remove upgrades
       shell:
         cmd: yum list installed|grep @updates|awk '{print $1}'|xargs yum -y downgrade --disablerepo="updates"
-      when: cvp_version == "2021.2.0" and cloud_provider == "gcp"
+      when: cvp_version not in legacy_cvps and cloud_provider == "gcp"
 
     - name: Setup python
       yum:
